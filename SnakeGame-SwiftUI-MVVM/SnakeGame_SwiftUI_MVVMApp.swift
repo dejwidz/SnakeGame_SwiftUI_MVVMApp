@@ -7,11 +7,24 @@
 
 import SwiftUI
 
+
+
 @main
 struct SnakeGame_SwiftUI_MVVMApp: App {
+    
+    @StateObject var snakeOptions = SnakeOptions()
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            SceneFactory.makeContentScene()
+                .environmentObject(snakeOptions)
         }
+    }
+}
+
+enum SceneFactory {
+    static func makeContentScene() -> some View {
+        let view = SnakeOptionsView()
+        return view
     }
 }
