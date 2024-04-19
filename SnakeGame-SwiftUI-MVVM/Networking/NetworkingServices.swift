@@ -15,15 +15,14 @@ protocol UsersDataProvider: AnyObject {
 final class NetworkingServices: UsersDataProvider {
     
     static var shared = NetworkingServices()
+    private let baseUrl = "https://randomuser.me/api/?inc=name,picture"
     private init () {}
-    
+
     enum NetworkingErrors: Error {
         case wrongURL
         case wrongRequest
         case wrongDecoding
     }
-    
-    private let baseUrl = "https://randomuser.me/api/?inc=name,picture"
     
     func getImage(link: String?, completion: @escaping (Result<Data, Error>) -> Void) {
         guard let link = link, let url = URL(string: link) else {
@@ -43,15 +42,6 @@ final class NetworkingServices: UsersDataProvider {
                 completion(.failure(NetworkingErrors.wrongDecoding))
             }
         }.resume()
-    }
-    
-    private func prepareRequest() -> URLRequest? {
-        guard let url = URL(string: baseUrl) else {
-            return nil
-        }
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        return request
     }
     
     func getUserFromNet(completion: @escaping (Result<User, Error>) -> Void) {
@@ -89,5 +79,14 @@ final class NetworkingServices: UsersDataProvider {
                 completion(.failure(NetworkingErrors.wrongDecoding))
             }
         }.resume()
+    }
+    
+    private func prepareRequest() -> URLRequest? {
+        guard let url = URL(string: baseUrl) else {
+            return nil
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        return request
     }
 }

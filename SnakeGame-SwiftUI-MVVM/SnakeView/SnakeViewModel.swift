@@ -17,27 +17,18 @@ protocol SnakeVM: ObservableObject {
     var lives: Int {get}
     var score: Int {get}
     func setup(snakeOptions: SnakeOptions)
-    func changeDirection(_ newDirection: movingDirection)
+    func changeDirection(_ newDirection: MovingDirection)
+    func setColor(board: [[FieldState]]?, column: Int, row: Int) -> Color
 }
 
-class SnakeBoard: SnakeVM {
+class SnakeViewModel: SnakeVM {
     
     @Published var board: [[FieldState]]?
-    typealias snakeIndex = (column: Int, row: Int)
-    private var actualFoodPosition: snakeIndex = (column: 10, row: 10)
-    private var snakeBody: [snakeIndex] = []
-    private var auxiliaryBoard: [[FieldState]]?
-    private var snakeMovingDirection = movingDirection.down
-    private var snakeHeadPosition: snakeIndex?
     @Published var gameOverIndicator = false {
         didSet {
             stopTimer()
         }
     }
-    private var snakeOptions: SnakeOptions?
-    private var cutting = false
-    private var speed: Double = 1
-    private var cuttingArray: [movingDirection] = []
     @Published var lives = 1 {
         didSet {
             if lives == 0 {
@@ -45,22 +36,31 @@ class SnakeBoard: SnakeVM {
             }
         }
     }
-    
     @Published var score: Int = 0
+    private var actualFoodPosition: SnakeIndex = (column: 10, row: 10)
+    private var snakeBody: [SnakeIndex] = []
+    private var auxiliaryBoard: [[FieldState]]?
+    private var snakeMovingDirection = MovingDirection.down
+    private var snakeHeadPosition: SnakeIndex?
+    private var snakeOptions: SnakeOptions?
+    private var cutting = false
+    private var speed: Double = 1
+    private var cuttingArray: [MovingDirection] = []
     private var borders = true
     private var increasingSpeed = true
     private var timer: Timer?
     private var interval: TimeInterval = 1
     private var cuttingAbility = false
     typealias Completion = () -> ()
+    typealias SnakeIndex = (column: Int, row: Int)
     
-    func startTimer() {
+    private func startTimer() {
         timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { timer in
             self.moveOn(direction: self.snakeMovingDirection, _snakeBody: self.snakeBody)
         }
     }
     
-    func stopTimer() {
+    private func stopTimer() {
         timer?.invalidate()
         timer = nil
     }
@@ -79,17 +79,47 @@ class SnakeBoard: SnakeVM {
         startTimer()
     }
     
-    func calculateSpeed() -> TimeInterval {
+    func setColor(board: [[FieldState]]?, column: Int, row: Int) -> Color {
+        guard let state = board?[column][row].fieldState else {
+            return .black
+        }
+        
+        var colorToReturn = Color.orange
+        
+        switch state {
+        case .free:
+            colorToReturn = .fieldColor
+        case .food:
+            colorToReturn = .foodColor
+        case .snakeBody:
+            colorToReturn = .snakeColor
+        case .snakeHead:
+            colorToReturn = .snakeHeadColor
+        case .cut:
+            colorToReturn = .red
+        }
+        return colorToReturn
+    }
+    
+    func changeDirection(_ newDirection: MovingDirection) {
+        guard newDirection != snakeMovingDirection, checkNewDirection(newDirection: newDirection) else {
+            return
+        }
+        snakeMovingDirection = newDirection
+        cuttingRecognizer(newDirection: newDirection)
+    }
+    
+    private func calculateSpeed() -> TimeInterval {
         return TimeInterval(2 - (snakeOptions?.snakeSpeed ?? 1))
     }
     
-    func increaseSpeed() {
+    private func increaseSpeed() {
         guard increasingSpeed else {return}
         guard interval > 0.01 else {return}
         interval -= 0.01
     }
     
-    func makeBoard() -> [[FieldState]] {
+    private func makeBoard() -> [[FieldState]] {
         var newBoard: [[FieldState]] = []
         for _ in 0...19 {
             var tempArray: [FieldState] = []
@@ -102,7 +132,7 @@ class SnakeBoard: SnakeVM {
         return newBoard
     }
     
-    func generateFood() {
+    private func generateFood() {
         score += 1
         var column = 0
         var row = 0
@@ -124,7 +154,7 @@ class SnakeBoard: SnakeVM {
         actualFoodPosition.row = row
     }
     
-    func initializeSnake() {
+    private func initializeSnake() {
         snakeBody = [
             (3,3),
             (3,2),
@@ -134,7 +164,7 @@ class SnakeBoard: SnakeVM {
         putSnakeOnBoard(snakeBody: snakeBody)
     }
     
-    func putSnakeOnBoard(snakeBody: [snakeIndex]) {
+    private func putSnakeOnBoard(snakeBody: [SnakeIndex]) {
         guard var auxiliaryBoard = auxiliaryBoard else {return}
         for field in snakeBody {
             auxiliaryBoard[field.column][field.row].fieldState = .snakeBody
@@ -150,7 +180,7 @@ class SnakeBoard: SnakeVM {
         board = auxiliaryBoard
     }
     
-    func prepareSnakeToCut(snakeBody: [snakeIndex], board: inout [[FieldState]]) {
+    private func prepareSnakeToCut(snakeBody: [SnakeIndex], board: inout [[FieldState]]) {
         guard cuttingAbility else {return}
         let half = Int(snakeBody.count / 2)
         let lastHalf = Array(snakeBody.suffix(half))
@@ -159,7 +189,7 @@ class SnakeBoard: SnakeVM {
         }
     }
     
-    func saveAccess(field: snakeIndex) -> Bool {
+    private func saveAccess(field: SnakeIndex) -> Bool {
         var valueToReturn = true
         if field.column < 0 ||
             field.column > 19 ||
@@ -172,7 +202,7 @@ class SnakeBoard: SnakeVM {
         return valueToReturn
     }
     
-    func checkNextFieldStatus(nextField: snakeIndex) -> Bool {
+    private func checkNextFieldStatus(nextField: SnakeIndex) -> Bool {
         let nextFieldStatus = board?[nextField.column][nextField.row].fieldState
         var valueToReturn = true
         switch nextFieldStatus {
@@ -198,7 +228,7 @@ class SnakeBoard: SnakeVM {
         return valueToReturn
     }
     
-    func moveOn(direction: movingDirection, _snakeBody: [snakeIndex]) {
+    private func moveOn(direction: MovingDirection, _snakeBody: [SnakeIndex]) {
         guard !gameOverIndicator else {return}
         guard let currentHeadPosition = snakeBody.first else { return }
         var nextField = direction.nextField(currentField: currentHeadPosition)
@@ -218,7 +248,7 @@ class SnakeBoard: SnakeVM {
         }
     }
     
-    func moveAfterCheck(nextField: snakeIndex) {
+    private func moveAfterCheck(nextField: SnakeIndex) {
         snakeBody.insert(nextField, at: 0)
         guard board?[nextField.column][nextField.row].fieldState == .food else {
             snakeBody.removeLast()
@@ -233,9 +263,9 @@ class SnakeBoard: SnakeVM {
     }
     
     
-    func cutSnake(index: snakeIndex, snakesBody: [snakeIndex]) -> [snakeIndex] {
+    private func cutSnake(index: SnakeIndex, snakesBody: [SnakeIndex]) -> [SnakeIndex] {
         var counter = 0
-        var newBody: [snakeIndex] = []
+        var newBody: [SnakeIndex] = []
         for field in snakeBody {
             if field == index {
                 break
@@ -247,15 +277,7 @@ class SnakeBoard: SnakeVM {
         return newBody
     }
     
-    func changeDirection(_ newDirection: movingDirection) {
-        guard newDirection != snakeMovingDirection, checkNewDirection(newDirection: newDirection) else {
-            return
-        }
-        snakeMovingDirection = newDirection
-        cuttingRecognizer(newDirection: newDirection)
-    }
-    
-    func checkNewDirection(newDirection: movingDirection) -> Bool {
+    private func checkNewDirection(newDirection: MovingDirection) -> Bool {
         var valueToReturn = false
         switch snakeMovingDirection {
         case .down:
@@ -270,7 +292,7 @@ class SnakeBoard: SnakeVM {
         return valueToReturn
     }
     
-    func cuttingRecognizer(newDirection: movingDirection) {
+    private func cuttingRecognizer(newDirection: MovingDirection) {
         guard cutting else {return}
         guard cuttingArray.count > 10 else {
             cuttingArray.insert(newDirection, at: 0)
@@ -284,7 +306,7 @@ class SnakeBoard: SnakeVM {
         cuttingArray.removeLast()
     }
     
-    func checkCuttingAbility(repeats: Int, currentPositionInCuttingArray: Int) {
+    private func checkCuttingAbility(repeats: Int, currentPositionInCuttingArray: Int) {
         var up = 0
         cuttingArray.forEach { move in
             if move == .up {
@@ -302,13 +324,14 @@ class SnakeBoard: SnakeVM {
         }
     }
     
-    func cancelCutting() {
+    private func cancelCutting() {
         cuttingAbility = false
     }
     
-    func countToCancelCutting(handler: @escaping Completion) {
+    private func countToCancelCutting(handler: @escaping Completion) {
         DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
             handler()
         }
     }
+    
 }

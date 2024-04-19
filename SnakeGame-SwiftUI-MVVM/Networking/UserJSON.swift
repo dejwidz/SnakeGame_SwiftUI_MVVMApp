@@ -45,11 +45,7 @@ class UserWithID: Identifiable, Hashable {
     }
     
     static func == (lhs: UserWithID, rhs: UserWithID) -> Bool {
-        if lhs.id == rhs.id {
-            return true
-        } else {
-            return false
-        }
+        return lhs.id == rhs.id
     }
     
     var id = UUID()
@@ -76,7 +72,7 @@ class UserWithID: Identifiable, Hashable {
             case .success(let data):
                 self?.imageData = data
             case .failure(let error):
-                print("zadziała się niestety chujoza podczas pobierania danych do obrazka", error.localizedDescription)
+                print("an error occured during data loading", error.localizedDescription)
             }
         }
     }

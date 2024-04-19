@@ -8,16 +8,15 @@
 import SwiftUI
 
 struct UsersView<ViewModel>: View where ViewModel: UsersViewModelProtocol {
+    
+    @Environment(\.presentationMode) private var presentationMode: Binding<PresentationMode>
     @ObservedObject private(set)var viewModel: ViewModel
+    @State private var isLoading = true
+    private var rotationAngles: Angle = .degrees(0)
     
     init(viewModel: ViewModel) {
         self.viewModel = viewModel
     }
-    
-    @State private var isLoading = true
-    @Environment(\.presentationMode) private var presentationMode: Binding<PresentationMode>
-    
-    private var rotationAngles: Angle = .degrees(0)
     
     var body: some View {
         NavigationView {

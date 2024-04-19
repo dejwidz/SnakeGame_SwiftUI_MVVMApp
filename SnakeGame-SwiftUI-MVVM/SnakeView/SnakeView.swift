@@ -7,10 +7,10 @@
 
 import SwiftUI
 
-struct ContentView<ViewModel>: View where ViewModel: SnakeVM {
+struct SnakeView<ViewModel>: View where ViewModel: SnakeVM {
     
-    @ObservedObject private(set)var viewModel: ViewModel
     @EnvironmentObject private var snakeOptions: SnakeOptions
+    @ObservedObject private(set)var viewModel: ViewModel
     @State private var offsetX: CGFloat = 0
     @State private var offsetY: CGFloat = 0
     @State private var showUsersView = false
@@ -28,7 +28,7 @@ struct ContentView<ViewModel>: View where ViewModel: SnakeVM {
                 ForEach(0..<(columnNumber),id: \.self) { col in
                     VStack {
                         ForEach(0..<(rowNumber), id: \.self) { row in
-                            Rectangle().fill(setColor(board: viewModel.board, column: col, row: row))
+                            Rectangle().fill(viewModel.setColor(board: viewModel.board, column: col, row: row))
                         }
                         .padding(-3.0)
                         Spacer()
@@ -79,34 +79,11 @@ struct ContentView<ViewModel>: View where ViewModel: SnakeVM {
             .navigationBarTitleDisplayMode(.inline)
             .navigationTitle("Score - \(viewModel.score) Lives - \(viewModel.lives)")
     }
-    
-    
-    func setColor(board: [[FieldState]]?, column: Int, row: Int) -> Color {
-        guard let state = board?[column][row].fieldState else {
-            return .black
-        }
-        
-        var colorToReturn = Color.orange
-        
-        switch state {
-        case .free:
-            colorToReturn = .fieldColor
-        case .food:
-            colorToReturn = .foodColor
-        case .snakeBody:
-            colorToReturn = .snakeColor
-        case .snakeHead:
-            colorToReturn = .snakeHeadColor
-        case .cut:
-            colorToReturn = .red
-        }
-        return colorToReturn
-    }
 }
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        ContentView(viewModel: SnakeBoard())
+        SnakeView(viewModel: SnakeViewModel())
         .environmentObject(SnakeOptions())
     }
 }

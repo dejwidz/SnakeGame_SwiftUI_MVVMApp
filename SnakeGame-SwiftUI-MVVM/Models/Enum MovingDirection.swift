@@ -1,21 +1,13 @@
 //
-//  Enums.swift
+//  Enum MovingDirection.swift
 //  SnakeGame-SwiftUI-MVVM
 //
-//  Created by Dawid Zimoch on 24/02/2024.
+//  Created by Dawid Zimoch on 19/03/2024.
 //
 
 import Foundation
 
-enum cellState {
-    case free
-    case food
-    case snakeBody
-    case snakeHead
-    case cut
-}
-
-enum movingDirection {
+enum MovingDirection {
     case up
     case down
     case left
@@ -50,9 +42,4 @@ enum movingDirection {
         }
         return nextField
     }
-}
-
-struct FieldState: Identifiable, Hashable {
-    var id = UUID()
-    var fieldState: cellState
 }

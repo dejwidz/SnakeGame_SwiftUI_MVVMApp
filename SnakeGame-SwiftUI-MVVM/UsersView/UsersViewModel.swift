@@ -33,7 +33,7 @@ final class UsersViewModel: UsersViewModelProtocol {
                 let newUser = UserWithID(firstName: user.name.first, lastName: user.name.last, pictureLink: user.picture.large, imageData: Data())
                 self?.addUser(newUser: newUser)
             case .failure(let error):
-                print("sa my w bledzie ", error.localizedDescription)
+                print("an error occured", error.localizedDescription)
             }
         })
     }

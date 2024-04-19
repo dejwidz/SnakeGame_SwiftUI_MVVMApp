@@ -39,7 +39,7 @@ struct SnakeOptionsView: View {
                         set: { snakeOptions.lives = Int($0) }
                     ), in: 1...10)
                 }
-                NavigationLink(destination: ContentView(viewModel: SnakeBoard())
+                NavigationLink(destination: SnakeView(viewModel: SnakeViewModel())
                     .navigationTitle("Snake")
                     .navigationBarItems(
                         leading: Button(action: {
@@ -60,7 +60,6 @@ struct SnakeOptionsView: View {
         }
     }
 }
-
 
 struct SnakeOptionsView_Previews: PreviewProvider {
     static var previews: some View {

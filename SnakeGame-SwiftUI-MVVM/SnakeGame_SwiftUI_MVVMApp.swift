@@ -7,8 +7,6 @@
 
 import SwiftUI
 
-
-
 @main
 struct SnakeGame_SwiftUI_MVVMApp: App {
     
